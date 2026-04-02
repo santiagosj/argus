@@ -1,0 +1,12 @@
+ai:
+  provider: "ollama"
+  model: "mistral:latest"
+  base_url: "http://localhost:11434"
+  api_key: ""
+
+persistence:
+  type: "sqlite"
+  path: "argus_memory.db"
+
+tools:
+  auto_install: false
