@@ -13,6 +13,8 @@ const (
 	ScreenNISTSelector Screen = iota
 	ScreenSkillSelector
 	ScreenTargetInput
+	ScreenToolSelector
+	ScreenToolRunning
 	ScreenRunning
 	ScreenActionProposal
 )
@@ -33,10 +35,20 @@ type TargetSelectedMsg struct {
 	Skill    string
 }
 
+type ToolOutputMsg struct {
+	Output string
+}
+
+type ToolFinishedMsg struct {
+	Success bool
+}
+
 type Model struct {
 	currentScreen  Screen
 	nistSelector   *screens.NISTSelectorModel
 	skillSelector  *screens.SkillSelectorModel
+	toolSelector   *screens.ToolSelectorModel
+	toolRunning    *screens.ToolRunningModel
 	targetInput    *screens.TargetInputModel
 	actionProposal *screens.ActionProposalModel
 
@@ -59,12 +71,16 @@ type Model struct {
 func NewModel() Model {
 	nist := screens.NewNISTSelector()
 	skill := screens.NewSkillSelector()
+	tool := screens.NewToolSelector()
 	target := screens.NewTargetInput()
+	toolRunning := screens.NewToolRunning()
 
 	return Model{
 		currentScreen: ScreenNISTSelector,
 		nistSelector:  nist,
 		skillSelector: skill,
+		toolSelector:  tool,
+		toolRunning:   toolRunning,
 		targetInput:   target,
 		lastWidth:     80, // Defaults
 		lastHeight:    24,
@@ -75,6 +91,14 @@ func NewLearningModel() Model {
 	m := NewModel()
 	m.LearningMode = true
 	return m
+}
+
+func (m *Model) EnableDirectTargetMode(target string) {
+	m.Target = target
+	m.currentScreen = ScreenToolSelector
+	m.toolSelector = screens.NewToolSelector()
+	m.toolSelector.SetTarget(target)
+	m.toolSelector.SetSize(m.lastWidth, m.lastHeight)
 }
 
 func (m Model) Init() tea.Cmd {
@@ -107,6 +131,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, m.actionProposal.Init()
 	case WorkflowFinishedMsg:
 		m.currentScreen = ScreenTargetInput // Or a report screen
+		return m, nil
+	case ToolOutputMsg:
+		if m.currentScreen == ScreenToolRunning {
+			m.toolRunning.ReceiveOutput(msg.Output)
+		}
+		return m, nil
+	case ToolFinishedMsg:
+		if m.currentScreen == ScreenToolRunning {
+			m.toolRunning.SetFinished(msg.Success)
+		}
 		return m, nil
 	}
 
@@ -172,7 +206,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.targetInput.Done() {
 			m.Target = m.targetInput.Value()
 			m.currentScreen = ScreenRunning
-			
+
 			// Notify external orchestrator
 			if m.TargetSelectedChan != nil {
 				go func() {
@@ -183,7 +217,45 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 				}()
 			}
-			return m, nil 
+			return m, nil
+		}
+
+	case ScreenToolSelector:
+		newToolSelector, toolCmd := m.toolSelector.Update(msg)
+		m.toolSelector = newToolSelector.(*screens.ToolSelectorModel)
+		cmd = toolCmd
+
+		choice := m.toolSelector.Choice()
+		if choice != "" {
+			m.SelectedSkill = choice
+			m.SelectedCategory = m.toolSelector.Category()
+			m.currentScreen = ScreenToolRunning
+			m.toolRunning.SetTool(choice, m.Target)
+			m.toolRunning.SetSize(m.lastWidth, m.lastHeight)
+
+			if m.TargetSelectedChan != nil {
+				go func() {
+					m.TargetSelectedChan <- TargetSelectedMsg{
+						Category: m.SelectedCategory,
+						Target:   m.Target,
+						Skill:    m.SelectedSkill,
+					}
+				}()
+			}
+			return m, m.toolRunning.Init()
+		}
+
+	case ScreenToolRunning:
+		newToolRunning, toolRunningCmd := m.toolRunning.Update(msg)
+		m.toolRunning = newToolRunning.(*screens.ToolRunningModel)
+		cmd = toolRunningCmd
+
+		if m.toolRunning.Done() {
+			// Tool finished, go back to tool selector for more tools
+			m.currentScreen = ScreenToolSelector
+			m.toolSelector.Reset()
+			m.toolSelector.SetTarget(m.Target)
+			return m, m.toolSelector.Init()
 		}
 
 	case ScreenActionProposal:
@@ -213,6 +285,10 @@ func (m Model) View() string {
 		return m.skillSelector.View()
 	case ScreenTargetInput:
 		return m.targetInput.View()
+	case ScreenToolSelector:
+		return m.toolSelector.View()
+	case ScreenToolRunning:
+		return m.toolRunning.View()
 	case ScreenRunning:
 		return "Launching Autonomous Workflow...\nCheck Dash: http://localhost:8080\n"
 	case ScreenActionProposal:

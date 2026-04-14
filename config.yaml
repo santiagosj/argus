@@ -1,6 +1,6 @@
 ai:
   provider: "ollama"
-  model: "mistral:latest"
+  model: "MFDoom/deepseek-r1-tool-calling:7b"
   base_url: "http://localhost:11434"
   api_key: ""
 

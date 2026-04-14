@@ -1,0 +1,33 @@
+# Binaries
+argus
+argus.exe
+*.o
+*.a
+
+# Database
+*.db
+*.db-shm
+*.db-wal
+argus_memory.db
+
+# Logs
+argus_audit.jsonl
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Build
+dist/
+build/
+bin/
+
+# Temp
+tmp/
+temp/
+*.tmp

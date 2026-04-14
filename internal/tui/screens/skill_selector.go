@@ -19,8 +19,13 @@ type skillItem struct {
 	content string
 }
 
-func (i skillItem) Title() string       { return i.name }
-func (i skillItem) Description() string { return "Skill file: " + i.path }
+func (i skillItem) Title() string { return i.name }
+func (i skillItem) Description() string {
+	if i.content != "" {
+		return i.content
+	}
+	return "Skill file: " + i.path
+}
 func (i skillItem) FilterValue() string { return i.name }
 
 type SkillSelectorModel struct {
@@ -44,17 +49,31 @@ func (m *SkillSelectorModel) SetCategory(cat agents.NISTCategory) {
 	m.list.Title = fmt.Sprintf("Argus: Skills for %s", cat)
 
 	items := []list.Item{}
-	skillDir := filepath.Join("skills", string(cat))
 
-	files, err := os.ReadDir(skillDir)
-	if err == nil {
-		for _, f := range files {
-			if !f.IsDir() && strings.HasSuffix(f.Name(), ".md") {
-				name := strings.TrimSuffix(f.Name(), ".md")
-				items = append(items, skillItem{
-					name: name,
-					path: filepath.Join(skillDir, f.Name()),
-				})
+	if cat == agents.Evolve {
+		// For Evolve, show development categories instead of SDD phases
+		evolveCategories := []skillItem{
+			{name: "New Agent", path: "new-agent", content: "Create a new AI agent for a specific security task"},
+			{name: "New Skill", path: "new-skill", content: "Develop a new security skill/tool integration"},
+			{name: "Improve Existing", path: "improve-existing", content: "Enhance an existing agent or skill"},
+			{name: "Custom Development", path: "custom", content: "Custom development request"},
+		}
+		for _, item := range evolveCategories {
+			items = append(items, item)
+		}
+	} else {
+		// For other categories, list actual skill files
+		skillDir := filepath.Join("skills", string(cat))
+		files, err := os.ReadDir(skillDir)
+		if err == nil {
+			for _, f := range files {
+				if !f.IsDir() && strings.HasSuffix(f.Name(), ".md") {
+					name := strings.TrimSuffix(f.Name(), ".md")
+					items = append(items, skillItem{
+						name: name,
+						path: filepath.Join(skillDir, f.Name()),
+					})
+				}
 			}
 		}
 	}

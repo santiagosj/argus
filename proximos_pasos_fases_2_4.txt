@@ -1,0 +1,57 @@
+### Fase 2: Expansión de Capacidades (Semanas 3-4)
+
+5. **Orquestación Multi-Agente**
+   - Implementar generación concurrente de sub-orquestadores con límites de recursos
+   - Añadir patrones de comunicación y compartición de datos entre agentes
+   - Crear abstracciones de "equipos de agentes" para flujos colaborativos
+
+6. **Soporte para Proveedores en la Nube**
+   - Implementar clases adaptadoras para Claude/OpenAI
+   - Añadir selección de proveedor en TUI
+   - Seguimiento de costos para uso de APIs en la nube
+
+7. **Características Avanzadas de Flujo de Trabajo**
+   - Implementar lógica de ramificación en orquestador (ej. si hallazgos contienen CVE, generar agente de explotación)
+   - Añadir omisión condicional de fases
+   - Crear plantillas de flujo de trabajo (ej. "Evaluación Completa NIST", "Recon Rápido")
+
+8. **Expansión de Skills**
+   - Auto-generar skills para herramientas de seguridad (nessus, burp, zap, metasploit)
+   - Añadir detección de disponibilidad de herramientas y cadenas de respaldo inteligentes
+   - Crear skills avanzados para categorías Protect/Detect/Respond
+
+### Fase 3: Inteligencia y Auto-Mejora (Semanas 5-6)
+
+9. **Ciclo Completo de Evolución SDD**
+   - Completar fases de Spec y Design en flujo de evolución
+   - Implementar fase de verificación (probar código generado antes de aplicar)
+   - Archivar artefactos antiguos de evolución para aprendizaje
+
+10. **Aprendizaje Contextual**
+    - Rastrear combinaciones de skill/herramienta que producen hallazgos de alta confianza
+    - Construir puntuación de "efectividad de skill"
+    - Recomendar cadenas óptimas de herramientas basadas en características del objetivo
+
+11. **Puntos de Integración**
+    - Alertas Slack/Teams para hallazgos críticos
+    - Disparadores webhook para herramientas downstream (SOAR, ticketing)
+    - Exportación CSV/JSON para reportes de cumplimiento
+
+### Fase 4: Preparación Empresarial (Semanas 7+)
+
+12. **Seguridad y Gobernanza**
+    - Implementar cadenas de aprobación de flujo de trabajo (aprobación multi-usuario)
+    - Añadir detección y enmascaramiento de PII en reportes
+    - Crear controles de acceso basados en roles para skills/herramientas
+    - Implementar modo dry-run para todas las operaciones destructivas
+
+13. **Optimización de Rendimiento**
+    - Paralelizar sub-orquestadores no dependientes
+    - Implementar caché de skills
+    - Perfilar uso de memoria bajo carga
+
+14. **Pruebas y Documentación**
+    - Completar pruebas unitarias para lógica de decisiones del orquestador
+    - Pruebas de integración con agentes dummy
+    - Generar documentación de API
+    - Crear tutoriales de flujos de trabajo

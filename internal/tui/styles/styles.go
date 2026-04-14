@@ -59,6 +59,9 @@ var (
 			BorderForeground(ColorLavender).
 			Padding(1, 2)
 
+	InfoStyle = lipgloss.NewStyle().
+			Foreground(ColorGreen)
+
 	PanelStyle = lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder()).
 			BorderForeground(ColorOverlay).
